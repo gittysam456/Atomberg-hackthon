@@ -1,0 +1,7 @@
+node_modules/
+.pnpm-store/
+dist/
+.env
+backend/data/
+backend/uploads/
+*.log
