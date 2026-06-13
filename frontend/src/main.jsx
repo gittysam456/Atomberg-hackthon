@@ -48,6 +48,7 @@ function Home({ agentToken, setAgentToken, startCall }) {
   const [passcode, setPasscode] = useState("");
   const [title, setTitle] = useState("Kitchen fan installation support");
   const [sessions, setSessions] = useState([]);
+  const [history, setHistory] = useState(null);
   const [error, setError] = useState("");
 
   async function login(e) {
@@ -81,6 +82,31 @@ function Home({ agentToken, setAgentToken, startCall }) {
     if (!agentToken) return;
     const data = await api("/api/sessions", { headers: { Authorization: `Bearer ${agentToken}` } });
     setSessions(data.sessions);
+  }
+
+  async function viewHistory(sessionId) {
+    setError("");
+    try {
+      const data = await api(`/api/sessions/${sessionId}`, { headers: { Authorization: `Bearer ${agentToken}` } });
+      setHistory(data.history);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function forceEnd(sessionId) {
+    setError("");
+    try {
+      await api(`/api/sessions/${sessionId}/end`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${agentToken}` },
+        body: JSON.stringify({})
+      });
+      await loadSessions();
+      await viewHistory(sessionId);
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   useEffect(() => {
@@ -127,11 +153,34 @@ function Home({ agentToken, setAgentToken, startCall }) {
                   <strong>{session.title}</strong>
                   <span>{session.status} · {new Date(session.createdAt).toLocaleString()}</span>
                 </div>
-                <button className="secondary" onClick={() => startCall({ role: "agent", sessionId: session.id, token: agentToken })}>Open</button>
+                <div className="rowActions">
+                  <button className="secondary" onClick={() => viewHistory(session.id)}>History</button>
+                  {session.status === "active" && <button className="secondary" onClick={() => startCall({ role: "agent", sessionId: session.id, token: agentToken })}>Open</button>}
+                  {session.status === "active" && <button className="danger" onClick={() => forceEnd(session.id)}>End</button>}
+                </div>
               </article>
             ))}
             {!sessions.length && <p className="muted">Login to view live and past sessions.</p>}
           </div>
+          {history && (
+            <div className="historyBox">
+              <h2>Session record</h2>
+              <p><strong>{history.session.title}</strong></p>
+              <p className="muted">{history.session.status} · recording {history.session.recordingStatus}</p>
+              <h3>Participants</h3>
+              {history.participants.map(person => (
+                <p key={person.id} className="auditLine">{person.name} · {person.role} · joined {new Date(person.joined_at).toLocaleTimeString()}</p>
+              ))}
+              <h3>Event log</h3>
+              {history.events.map(event => (
+                <p key={event.id} className="auditLine">{new Date(event.created_at).toLocaleTimeString()} · {event.type} · {event.detail}</p>
+              ))}
+              <h3>Messages</h3>
+              {history.messages.map(message => (
+                <p key={message.id} className="auditLine">{message.name}: {message.file_name || message.body}</p>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </main>

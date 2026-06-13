@@ -70,13 +70,23 @@ h2 { display: flex; align-items: center; gap: 8px; font-size: 20px; margin: 0 0 
 .sessionRow {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   padding: 12px;
   border: 1px solid #e2d9ca;
   border-radius: 8px;
   background: white;
 }
+.rowActions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.rowActions button { min-height: 36px; }
 .sessionRow span, .person span { display: block; color: #69746d; font-size: 13px; margin-top: 3px; }
+.historyBox {
+  margin-top: 18px;
+  border-top: 1px solid #ded5c6;
+  padding-top: 16px;
+}
+.historyBox h3 { font-size: 14px; margin: 14px 0 6px; color: #536057; text-transform: uppercase; letter-spacing: .06em; }
+.auditLine { margin: 6px 0; font-size: 14px; color: #334039; }
 .callShell { min-height: 100vh; padding: 18px; }
 .callTop {
   display: flex;
